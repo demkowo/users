@@ -1,4 +1,3 @@
-// repository/repository.go
 package postgres
 
 import (
@@ -61,7 +60,6 @@ func (r *users) Add(ctx context.Context, user model.User) (model.User, error) {
 		return model.User{}, err
 	}
 
-	// Insert clubs and user_clubs links
 	for _, c := range user.Clubs {
 		cl, err := qtx.CreateClub(ctx, c.Name)
 		if err != nil {
@@ -157,13 +155,11 @@ func (r *users) Update(ctx context.Context, user model.User) (model.User, error)
 		return model.User{}, err
 	}
 
-	// Delete old links
 	if err := qtx.DeleteUserClubsByUserID(ctx, u.ID); err != nil {
 		_ = tx.Rollback()
 		return model.User{}, err
 	}
 
-	// Insert new clubs
 	for _, c := range user.Clubs {
 		cl, err := qtx.CreateClub(ctx, c.Name)
 		if err != nil {
@@ -216,14 +212,12 @@ func (r *users) Delete(ctx context.Context, userID uuid.UUID) (model.User, error
 
 	clubs, err := r.q.GetClubsByUserID(ctx, u.ID)
 	if err != nil {
-		// user is already soft-deleted, return user with empty clubs
 		return toDomainUser(u, []sqlc.Club{}), nil
 	}
 
 	return toDomainUser(u, clubs), nil
 }
 
-// attachClubs fetches clubs for each user
 func (r *users) attachClubs(ctx context.Context, us []sqlc.User) ([]model.User, error) {
 	domainUsers := toDomainUsers(us)
 	for i, u := range us {
@@ -236,7 +230,6 @@ func (r *users) attachClubs(ctx context.Context, us []sqlc.User) ([]model.User, 
 	return domainUsers, nil
 }
 
-// Helpers
 func toDomainUser(u sqlc.User, clubs []sqlc.Club) model.User {
 	return model.User{
 		ID:       u.ID,

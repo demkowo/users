@@ -5,7 +5,6 @@ import (
 	"log"
 )
 
-// Values interface variable allowing access to config data
 var Values ci = &conf{}
 
 type ci interface {
@@ -27,13 +26,11 @@ type toast struct {
 	Success bool
 }
 
-// Get values from config file
 func (m *conf) Get() *conf {
 	log.Println("=== model Values Get ===")
 	return m
 }
 
-// Set changes in config file values based on input
 func (m *conf) Set(c conf) {
 	log.Println("=== model Values Set ===")
 	m.UseCache = c.UseCache

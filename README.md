@@ -1,7 +1,7 @@
 # Users Service
 
 ## Overview
-The **Users Service** is responsible for managing user accounts, including creation, retrieval, updates, and deletion. It also handles user profile images and associations with clubs. The service is implemented in Golang using `sqlc` for efficient database interaction with PostgreSQL.
+The **Users Service** is a Golang-based API that manages user accounts, profile images, and club associations. It is built with `Gin Gonic` for the HTTP router and `sqlc` for efficient database interaction with PostgreSQL. The service supports CRUD operations for users and clubs, along with soft deletion and transaction management.
 
 ## Features
 - **User Management**: Add, find, list, update, and delete users.
@@ -23,13 +23,15 @@ users/
 
 ## API Endpoints
 | Method | Endpoint | Description |
-|--------|---------|-------------|
-| `POST` | `/users` | Create a new user |
-| `GET`  | `/users` | Retrieve all users |
-| `GET`  | `/users/{id}` | Get user by ID |
-| `PATCH` | `/users/{id}` | Update user details |
-| `PATCH` | `/users/{id}/image` | Update user profile image |
-| `DELETE` | `/users/{id}` | Soft delete a user |
+|--------|--------------------------------|-----------------------------|
+| `POST` | `/api/v1/users/add` | Create a new user |
+| `PUT`  | `/api/v1/users/edit/:user_id` | Update user details |
+| `PUT`  | `/api/v1/users/edit-img/:user_id` | Update user profile image |
+| `DELETE` | `/api/v1/users/delete/:user_id` | Soft delete a user |
+| `GET`  | `/api/v1/users/get/:user_id` | Get user by ID |
+| `GET`  | `/api/v1/users/get-avatar/:nickname` | Get user avatar by nickname |
+| `GET`  | `/api/v1/users/find` | Retrieve all users |
+| `GET`  | `/api/v1/users/list` | List users with pagination |
 
 ## Database Schema
 The service interacts with the following tables:
@@ -69,40 +71,50 @@ CREATE TABLE user_clubs (
 
 ### Create a User
 ```sh
-curl -X POST http://localhost:8080/users -H "Content-Type: application/json" -d '{
+curl -X POST http://localhost:8080/api/v1/users/add -H "Content-Type: application/json" -d '{
     "nickname": "john_doe",
     "country": "USA",
     "city": "New York"
 }'
 ```
 
-### Get All Users
-```sh
-curl -X GET http://localhost:8080/users
-```
-
 ### Get User by ID
 ```sh
-curl -X GET http://localhost:8080/users/{id}
+curl -X GET http://localhost:8080/api/v1/users/get/{user_id}
+```
+
+### Get User Avatar by Nickname
+```sh
+curl -X GET http://localhost:8080/api/v1/users/get-avatar/{nickname}
+```
+
+### Find Users
+```sh
+curl -X GET http://localhost:8080/api/v1/users/find
+```
+
+### List Users
+```sh
+curl -X GET http://localhost:8080/api/v1/users/list
 ```
 
 ### Update User
 ```sh
-curl -X PATCH http://localhost:8080/users/{id} -H "Content-Type: application/json" -d '{
+curl -X PUT http://localhost:8080/api/v1/users/edit/{user_id} -H "Content-Type: application/json" -d '{
     "city": "Los Angeles"
 }'
 ```
 
 ### Update Profile Image
 ```sh
-curl -X PATCH http://localhost:8080/users/{id}/image -H "Content-Type: application/json" -d '{
+curl -X PUT http://localhost:8080/api/v1/users/edit-img/{user_id} -H "Content-Type: application/json" -d '{
     "img": "https://example.com/profile.jpg"
 }'
 ```
 
 ### Delete User (Soft Delete)
 ```sh
-curl -X DELETE http://localhost:8080/users/{id}
+curl -X DELETE http://localhost:8080/api/v1/users/delete/{user_id}
 ```
 
 ## Transactions & Error Handling

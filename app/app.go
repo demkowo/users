@@ -23,7 +23,6 @@ var (
 )
 
 func init() {
-	// Basic config for logging and templates if needed
 	fmt.Println("=== Basic logger configuration ===")
 	conf.UseCache = false
 	conf.InProduction = false
@@ -33,7 +32,6 @@ func init() {
 func Start() {
 	log.Trace()
 
-	// Open DB connection
 	db, err := sql.Open("postgres", dbConnection)
 	if err != nil {
 		log.Panic(err)

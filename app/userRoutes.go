@@ -9,7 +9,6 @@ import (
 func addUserRoutes(h handler.Users) {
 	log.Println("--- Setting User Routes ---")
 
-	// User routes
 	router.POST("/api/v1/users/add", h.Add)
 	router.PUT("/api/v1/users/edit/:user_id", h.Update)
 	router.PUT("/api/v1/users/edit-img/:user_id", h.UpdateImg)

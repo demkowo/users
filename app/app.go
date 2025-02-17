@@ -2,7 +2,6 @@ package app
 
 import (
 	"database/sql"
-	"fmt"
 	"os"
 
 	"github.com/demkowo/users/config"
@@ -23,7 +22,6 @@ var (
 )
 
 func init() {
-	fmt.Println("=== Basic logger configuration ===")
 	conf.UseCache = false
 	conf.InProduction = false
 	config.Values.Set(*conf)

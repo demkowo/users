@@ -11,14 +11,14 @@ import (
 )
 
 type UsersRepo interface {
-	Add(ctx context.Context, user model.User) (model.User, error)
-	Find(ctx context.Context) ([]model.User, error)
-	List(ctx context.Context, limit, offset int32) ([]model.User, error)
-	GetImgByNickname(ctx context.Context, nickname string) (string, error)
-	GetByID(ctx context.Context, id uuid.UUID) (model.User, error)
-	Update(ctx context.Context, user model.User) (model.User, error)
-	UpdateImg(ctx context.Context, userID uuid.UUID, img string) (model.User, error)
-	Delete(ctx context.Context, userID uuid.UUID) (model.User, error)
+	Add(ctx context.Context, user model.User) (model.User, *resp.Err)
+	Find(ctx context.Context) ([]model.User, *resp.Err)
+	List(ctx context.Context, limit, offset int32) ([]model.User, *resp.Err)
+	GetImgByNickname(ctx context.Context, nickname string) (string, *resp.Err)
+	GetByID(ctx context.Context, id uuid.UUID) (model.User, *resp.Err)
+	Update(ctx context.Context, user model.User) (model.User, *resp.Err)
+	UpdateImg(ctx context.Context, userID uuid.UUID, img string) (model.User, *resp.Err)
+	Delete(ctx context.Context, userID uuid.UUID) (model.User, *resp.Err)
 }
 
 type Users interface {
@@ -48,7 +48,7 @@ func (s *users) Find(ctx context.Context) ([]*model.User, *resp.Err) {
 
 	us, err := s.repo.Find(ctx)
 	if err != nil {
-		return nil, resp.Error(http.StatusInternalServerError, "failed to find users", []interface{}{err.Error()})
+		return nil, err
 	}
 
 	result := make([]*model.User, len(us))
@@ -64,7 +64,7 @@ func (s *users) List(ctx context.Context, limit, offset int32) ([]*model.User, *
 
 	us, err := s.repo.List(ctx, limit, offset)
 	if err != nil {
-		return nil, resp.Error(http.StatusInternalServerError, "failed to list users", []interface{}{err.Error()})
+		return nil, err
 	}
 
 	result := make([]*model.User, len(us))
@@ -80,7 +80,7 @@ func (s *users) GetAvatarByNickname(ctx context.Context, nickname string) (strin
 
 	avatar, err := s.repo.GetImgByNickname(ctx, nickname)
 	if err != nil {
-		return "", resp.Error(http.StatusInternalServerError, "failed to get avatar", []interface{}{err.Error()})
+		return "", err
 	}
 	return avatar, nil
 }
@@ -90,7 +90,7 @@ func (s *users) GetByID(ctx context.Context, id uuid.UUID) (*model.User, *resp.E
 
 	u, err := s.repo.GetByID(ctx, id)
 	if err != nil {
-		return nil, resp.Error(http.StatusInternalServerError, "failed to get user", []interface{}{err.Error()})
+		return nil, err
 	}
 
 	return &u, nil
@@ -101,7 +101,7 @@ func (s *users) Add(ctx context.Context, user *model.User) *resp.Err {
 
 	_, err := s.repo.Add(ctx, *user)
 	if err != nil {
-		return resp.Error(http.StatusInternalServerError, "failed to add user", []interface{}{err.Error()})
+		return err
 	}
 
 	return nil
@@ -112,7 +112,7 @@ func (s *users) Update(ctx context.Context, user *model.User) *resp.Err {
 
 	_, err := s.repo.Update(ctx, *user)
 	if err != nil {
-		return resp.Error(http.StatusInternalServerError, "failed to update user", []interface{}{err.Error()})
+		return err
 	}
 
 	return nil
@@ -123,7 +123,7 @@ func (s *users) UpdateImg(ctx context.Context, id uuid.UUID, path string) *resp.
 
 	_, err := s.repo.UpdateImg(ctx, id, path)
 	if err != nil {
-		return resp.Error(http.StatusInternalServerError, "failed to update image", []interface{}{err.Error()})
+		return err
 	}
 
 	return nil
@@ -142,7 +142,7 @@ func (s *users) Delete(ctx context.Context, id string) *resp.Err {
 
 	_, e := s.repo.Delete(ctx, uid)
 	if e != nil {
-		return resp.Error(http.StatusBadRequest, "failed to delete user", []interface{}{e.Error()})
+		return e
 	}
 
 	return nil

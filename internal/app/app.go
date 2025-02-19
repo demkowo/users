@@ -4,16 +4,16 @@ import (
 	"database/sql"
 	"os"
 
-	"github.com/demkowo/users/config"
-	handler "github.com/demkowo/users/handlers"
-	"github.com/demkowo/users/repositories/postgres"
-	service "github.com/demkowo/users/services"
+	"github.com/demkowo/users/internal/config"
+	handler "github.com/demkowo/users/internal/handlers/gin"
+	"github.com/demkowo/users/internal/repositories/postgres"
+	service "github.com/demkowo/users/internal/services"
 	"github.com/gin-gonic/gin"
 	_ "github.com/lib/pq"
 	log "github.com/sirupsen/logrus"
 )
 
-const portNumber = ":5001"
+const portNumber = ":5000"
 
 var (
 	conf         = config.Values.Get()
@@ -40,6 +40,8 @@ func Start() {
 	usersService := service.NewUsers(usersRepo)
 	usersHandler := handler.NewUser(usersService)
 	addUserRoutes(usersHandler)
+
+	go pbServerStart(usersService)
 
 	log.Infof("Starting server on %s", portNumber)
 	if err := router.Run(portNumber); err != nil {

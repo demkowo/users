@@ -2,19 +2,19 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 -- Users table
 CREATE TABLE IF NOT EXISTS users (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY,
     nickname TEXT UNIQUE NOT NULL,
     img TEXT,
     country TEXT,
     city TEXT,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
-    deleted BOOLEAN DEFAULT FALSE
+    created_at TIMESTAMP WITH TIME ZONE,
+    updated_at TIMESTAMP WITH TIME ZONE,
+    deleted BOOLEAN DEFAULT false
 );
 
 -- Clubs table
 CREATE TABLE IF NOT EXISTS clubs (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY,
     name TEXT UNIQUE NOT NULL
 );
 

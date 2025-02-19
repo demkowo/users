@@ -1,6 +1,6 @@
 -- name: CreateUser :one
-INSERT INTO users (nickname, img, country, city)
-VALUES ($1, $2, $3, $4)
+INSERT INTO users (id, nickname, img, country, city)
+VALUES ($1, $2, $3, $4, $5)
 RETURNING id, nickname, img, country, city, created_at, updated_at, deleted;
 
 -- name: UpdateUser :one
@@ -49,9 +49,11 @@ WHERE u.deleted = FALSE
 ORDER BY u.created_at DESC;
 
 -- name: CreateClub :one
-INSERT INTO clubs (name)
-VALUES ($1)
-ON CONFLICT (name) DO UPDATE SET name=EXCLUDED.name
+INSERT INTO clubs (id, name)
+VALUES ($1, $2)
+ON CONFLICT (name) 
+DO UPDATE 
+    SET name = EXCLUDED.name
 RETURNING id, name;
 
 -- name: AddUserClub :exec

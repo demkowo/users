@@ -2,9 +2,10 @@ package service
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 
-	model "github.com/demkowo/users/models"
+	model "github.com/demkowo/users/internal/models"
 	"github.com/demkowo/utils/resp"
 	"github.com/google/uuid"
 	log "github.com/sirupsen/logrus"
@@ -22,14 +23,14 @@ type UsersRepo interface {
 }
 
 type Users interface {
-	Find(ctx context.Context) ([]*model.User, *resp.Err)
-	List(ctx context.Context, limit, offset int32) ([]*model.User, *resp.Err)
+	Add(ctx context.Context, user *model.User) *resp.Err
+	Delete(ctx context.Context, id string) *resp.Err
+	Find(ctx context.Context) ([]model.User, *resp.Err)
 	GetAvatarByNickname(ctx context.Context, nickname string) (string, *resp.Err)
 	GetByID(ctx context.Context, id uuid.UUID) (*model.User, *resp.Err)
-	Add(ctx context.Context, user *model.User) *resp.Err
+	List(ctx context.Context, limit, offset int32) ([]model.User, *resp.Err)
 	Update(ctx context.Context, user *model.User) *resp.Err
 	UpdateImg(ctx context.Context, id uuid.UUID, path string) *resp.Err
-	Delete(ctx context.Context, id string) *resp.Err
 }
 
 type users struct {
@@ -43,7 +44,39 @@ func NewUsers(repo UsersRepo) Users {
 	}
 }
 
-func (s *users) Find(ctx context.Context) ([]*model.User, *resp.Err) {
+func (s *users) Add(ctx context.Context, user *model.User) *resp.Err {
+	log.Trace()
+
+	fmt.Println(user.Clubs)
+
+	_, err := s.repo.Add(ctx, *user)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *users) Delete(ctx context.Context, id string) *resp.Err {
+	log.Trace()
+
+	if id == "" {
+		return resp.Error(http.StatusBadRequest, "failed to delete user", []interface{}{"user id is required"})
+	}
+	uid, err := uuid.Parse(id)
+	if err != nil {
+		return resp.Error(http.StatusBadRequest, "failed to delete user", []interface{}{"invalid uuid format", err.Error()})
+	}
+
+	_, e := s.repo.Delete(ctx, uid)
+	if e != nil {
+		return e
+	}
+
+	return nil
+}
+
+func (s *users) Find(ctx context.Context) ([]model.User, *resp.Err) {
 	log.Trace()
 
 	us, err := s.repo.Find(ctx)
@@ -51,26 +84,10 @@ func (s *users) Find(ctx context.Context) ([]*model.User, *resp.Err) {
 		return nil, err
 	}
 
-	result := make([]*model.User, len(us))
+	result := make([]model.User, len(us))
 	for i := range us {
 		u := us[i]
-		result[i] = &u
-	}
-	return result, nil
-}
-
-func (s *users) List(ctx context.Context, limit, offset int32) ([]*model.User, *resp.Err) {
-	log.Trace()
-
-	us, err := s.repo.List(ctx, limit, offset)
-	if err != nil {
-		return nil, err
-	}
-
-	result := make([]*model.User, len(us))
-	for i := range us {
-		u := us[i]
-		result[i] = &u
+		result[i] = u
 	}
 	return result, nil
 }
@@ -96,15 +113,20 @@ func (s *users) GetByID(ctx context.Context, id uuid.UUID) (*model.User, *resp.E
 	return &u, nil
 }
 
-func (s *users) Add(ctx context.Context, user *model.User) *resp.Err {
+func (s *users) List(ctx context.Context, limit, offset int32) ([]model.User, *resp.Err) {
 	log.Trace()
 
-	_, err := s.repo.Add(ctx, *user)
+	us, err := s.repo.List(ctx, limit, offset)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	return nil
+	result := make([]model.User, len(us))
+	for i := range us {
+		u := us[i]
+		result[i] = u
+	}
+	return result, nil
 }
 
 func (s *users) Update(ctx context.Context, user *model.User) *resp.Err {
@@ -124,25 +146,6 @@ func (s *users) UpdateImg(ctx context.Context, id uuid.UUID, path string) *resp.
 	_, err := s.repo.UpdateImg(ctx, id, path)
 	if err != nil {
 		return err
-	}
-
-	return nil
-}
-
-func (s *users) Delete(ctx context.Context, id string) *resp.Err {
-	log.Trace()
-
-	if id == "" {
-		return resp.Error(http.StatusBadRequest, "failed to delete user", []interface{}{"user id is required"})
-	}
-	uid, err := uuid.Parse(id)
-	if err != nil {
-		return resp.Error(http.StatusBadRequest, "failed to delete user", []interface{}{"invalid uuid format", err.Error()})
-	}
-
-	_, e := s.repo.Delete(ctx, uid)
-	if e != nil {
-		return e
 	}
 
 	return nil

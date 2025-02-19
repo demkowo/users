@@ -17,13 +17,6 @@ type conf struct {
 	TemplateCache map[string]*template.Template
 	InProduction  bool
 	Session       string
-	Toast         toast
-}
-
-type toast struct {
-	Active  bool
-	Message string
-	Success bool
 }
 
 func (m *conf) Get() *conf {
@@ -37,5 +30,4 @@ func (m *conf) Set(c conf) {
 	m.InProduction = c.InProduction
 	m.Session = c.Session
 	m.TemplateCache = c.TemplateCache
-	m.Toast = c.Toast
 }

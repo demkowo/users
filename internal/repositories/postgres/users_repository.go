@@ -3,11 +3,12 @@ package postgres
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"net/http"
 	"time"
 
-	model "github.com/demkowo/users/models"
-	"github.com/demkowo/users/repositories/postgres/sqlc"
+	model "github.com/demkowo/users/internal/models"
+	"github.com/demkowo/users/internal/repositories/postgres/sqlc"
 	"github.com/demkowo/utils/resp"
 
 	"github.com/google/uuid"
@@ -51,6 +52,7 @@ func (r *users) Add(ctx context.Context, user model.User) (model.User, *resp.Err
 	qtx := r.q.WithTx(tx)
 
 	u, err := qtx.CreateUser(ctx, sqlc.CreateUserParams{
+		ID:       user.ID,
 		Nickname: user.Nickname,
 		Img:      nullString(user.Img),
 		Country:  nullString(user.Country),
@@ -62,7 +64,7 @@ func (r *users) Add(ctx context.Context, user model.User) (model.User, *resp.Err
 	}
 
 	for _, c := range user.Clubs {
-		cl, err := qtx.CreateClub(ctx, c.Name)
+		cl, err := qtx.CreateClub(ctx, sqlc.CreateClubParams{ID: c.ID, Name: c.Name})
 		if err != nil {
 			_ = tx.Rollback()
 			return model.User{}, resp.Error(http.StatusInternalServerError, "failed to add user", []interface{}{err.Error()})
@@ -83,6 +85,20 @@ func (r *users) Add(ctx context.Context, user model.User) (model.User, *resp.Err
 	clubs, err := r.q.GetClubsByUserID(ctx, u.ID)
 	if err != nil {
 		return model.User{}, resp.Error(http.StatusInternalServerError, "failed to add user", []interface{}{err.Error()})
+	}
+
+	return toDomainUser(u, clubs), nil
+}
+
+func (r *users) Delete(ctx context.Context, userID uuid.UUID) (model.User, *resp.Err) {
+	u, err := r.q.SoftDeleteUser(ctx, userID)
+	if err != nil {
+		return model.User{}, resp.Error(http.StatusInternalServerError, "failed to delete user", []interface{}{err.Error()})
+	}
+
+	clubs, err := r.q.GetClubsByUserID(ctx, u.ID)
+	if err != nil {
+		return toDomainUser(u, []sqlc.Club{}), nil
 	}
 
 	return toDomainUser(u, clubs), nil
@@ -162,7 +178,7 @@ func (r *users) Update(ctx context.Context, user model.User) (model.User, *resp.
 	}
 
 	for _, c := range user.Clubs {
-		cl, err := qtx.CreateClub(ctx, c.Name)
+		cl, err := qtx.CreateClub(ctx, sqlc.CreateClubParams{ID: c.ID, Name: c.Name})
 		if err != nil {
 			_ = tx.Rollback()
 			return model.User{}, resp.Error(http.StatusInternalServerError, "failed to update user", []interface{}{err.Error()})
@@ -205,21 +221,9 @@ func (r *users) UpdateImg(ctx context.Context, userID uuid.UUID, img string) (mo
 	return toDomainUser(u, clubs), nil
 }
 
-func (r *users) Delete(ctx context.Context, userID uuid.UUID) (model.User, *resp.Err) {
-	u, err := r.q.SoftDeleteUser(ctx, userID)
-	if err != nil {
-		return model.User{}, resp.Error(http.StatusInternalServerError, "failed to delete user", []interface{}{err.Error()})
-	}
-
-	clubs, err := r.q.GetClubsByUserID(ctx, u.ID)
-	if err != nil {
-		return toDomainUser(u, []sqlc.Club{}), nil
-	}
-
-	return toDomainUser(u, clubs), nil
-}
-
 func (r *users) attachClubs(ctx context.Context, us []sqlc.User) ([]model.User, *resp.Err) {
+
+	fmt.Println(us)
 	domainUsers := toDomainUsers(us)
 	for i, u := range us {
 		clubs, err := r.q.GetClubsByUserID(ctx, u.ID)

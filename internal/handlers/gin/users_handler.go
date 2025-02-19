@@ -4,8 +4,8 @@ import (
 	"net/http"
 	"strconv"
 
-	model "github.com/demkowo/users/models"
-	service "github.com/demkowo/users/services"
+	model "github.com/demkowo/users/internal/models"
+	service "github.com/demkowo/users/internal/services"
 	"github.com/demkowo/utils/helper"
 	"github.com/demkowo/utils/resp"
 	"github.com/gin-gonic/gin"
@@ -64,6 +64,7 @@ func (h *users) Add(c *gin.Context) {
 	}
 
 	user := &model.User{
+		ID:       uuid.New(),
 		Nickname: input.Nickname,
 		Img:      input.Img,
 		Country:  input.Country,
@@ -196,7 +197,6 @@ func (h *users) Update(c *gin.Context) {
 	}
 
 	var input struct {
-		Img     string   `json:"img"`
 		Country string   `json:"country"`
 		City    string   `json:"city"`
 		Clubs   []string `json:"clubs"`
@@ -216,7 +216,6 @@ func (h *users) Update(c *gin.Context) {
 
 	user := &model.User{
 		ID:      id,
-		Img:     input.Img,
 		Country: input.Country,
 		City:    input.City,
 		Clubs:   clubs,
@@ -245,7 +244,7 @@ func (h *users) UpdateImg(c *gin.Context) {
 		Img string `json:"img" binding:"required"`
 	}
 
-	if !help.BindJSON(c, input) {
+	if !help.BindJSON(c, &input) {
 		return
 	}
 

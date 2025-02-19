@@ -3,7 +3,7 @@ package app
 import (
 	log "github.com/sirupsen/logrus"
 
-	handler "github.com/demkowo/users/handlers"
+	handler "github.com/demkowo/users/internal/handlers/gin"
 )
 
 func addUserRoutes(h handler.Users) {
